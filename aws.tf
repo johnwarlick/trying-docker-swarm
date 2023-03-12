@@ -13,21 +13,43 @@ provider "aws" {
   region = "us-east-1"
 }
 
-data "aws_ami" "ubuntu" {
+data "aws_ami" "swarm" {
+  #executable_users = ["self"]
   most_recent = true
+  owners      = ["self"]
 
   filter {
     name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+    values = ["trying-docker-swarm*"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
   }
 
   filter {
     name   = "virtualization-type"
     values = ["hvm"]
   }
-
-  owners = ["099720109477"] # Canonical
 }
+
+# Below is an example of finding the image straight from Canonical
+# data "aws_ami" "ubuntu" {
+#   most_recent = true
+
+#   filter {
+#     name   = "name"
+#     values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+#   }
+
+#   filter {
+#     name   = "virtualization-type"
+#     values = ["hvm"]
+#   }
+
+#   owners = ["099720109477"] # Canonical
+# }
 
 resource "aws_vpc" "swarm" {
   cidr_block = "10.20.20.0/25"
@@ -109,21 +131,13 @@ resource "aws_network_interface" "swarm" {
   }
 }
 
-resource "aws_eip" "swarm" {
-  vpc               = true
-  network_interface = aws_network_interface.swarm.id
-  tags = {
-    "Name" = "Trying-Docker-Swarm-ip"
-  }
-}
-
 resource "aws_key_pair" "swarm" {
   key_name   = "swarm-key"
   public_key = file(var.public_key)
 }
 
-resource "aws_instance" "swarm_host" {
-  ami           = data.aws_ami.ubuntu.id
+resource "aws_instance" "swarm" {
+  ami           = data.aws_ami.swarm.id
   instance_type = "t2.micro"
   key_name      = "swarm-key"
 
@@ -135,9 +149,19 @@ resource "aws_instance" "swarm_host" {
   tags = {
     Name = "Trying-Docker-Swarm"
   }
+
+}
+
+resource "aws_eip" "swarm" {
+  vpc               = true
+  network_interface = aws_network_interface.swarm.id
+  tags = {
+    "Name" = "Trying-Docker-Swarm-ip"
+  }
+  depends_on = [aws_instance.swarm]
 }
 
 
 output "ec2_global_ips" {
-  value = ["${aws_instance.swarm_host.*.public_ip}"]
+  value = ["${aws_instance.swarm.*.public_ip}"]
 }
