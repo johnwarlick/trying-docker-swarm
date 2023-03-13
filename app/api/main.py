@@ -22,5 +22,5 @@ def hello_world():
     return {"message": "OK"}
 
 @app.get("/test")
-def hello_world():
+def test():
     return {"message": "Test"}
