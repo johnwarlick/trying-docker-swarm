@@ -1,0 +1,4 @@
+---
+# vars file for roles/swarm
+advertise_addr: "{{ hostvars['manager1']['ansible_host'] }}"
+advertise_addr_port: 2377

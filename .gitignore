@@ -10,3 +10,4 @@ app/api/__pycache__*
 # Crash log files
 crash.log
 crash.*.log
+/.DS_Store

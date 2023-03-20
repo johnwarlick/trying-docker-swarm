@@ -1,0 +1,8 @@
+- name: install docker
+  hosts: multipass
+  become: yes
+  roles:
+   - docker
+   - swarm
+   - tools
+
